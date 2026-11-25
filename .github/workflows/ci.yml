@@ -1,0 +1,68 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    # pack.ps1 рассчитан на Windows PowerShell 5.1, как у разработчиков
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Проверка синтаксиса JS
+        run: npm run check
+
+      - name: Тесты генераторов xlsx/csv
+        run: npm test
+
+      - name: Проверка кодировок и сборка ZIP
+        shell: powershell
+        run: powershell -ExecutionPolicy Bypass -File scripts\pack.ps1
+
+      - name: Версия тега совпадает с manifest.json
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: pwsh
+        run: |
+          $v = (Get-Content manifest.json -Raw | ConvertFrom-Json).version
+          if ("v$v" -ne $env:GITHUB_REF_NAME) { throw "Тег $env:GITHUB_REF_NAME не совпадает с версией $v в manifest.json" }
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: primo-logs-export
+          path: dist/*.zip
+          if-no-files-found: error
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: primo-logs-export
+          path: dist
+
+      - name: Релиз GitHub с заметками из CHANGELOG.md
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          awk -v v="$version" '$0 ~ "^## " v " " {f=1; next} /^## / {f=0} f' CHANGELOG.md > notes.md
+          gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 \
+            && gh release upload "$GITHUB_REF_NAME" dist/*.zip --clobber \
+            || gh release create "$GITHUB_REF_NAME" dist/*.zip --title "$GITHUB_REF_NAME" --notes-file notes.md

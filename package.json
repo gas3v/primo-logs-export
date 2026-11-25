@@ -1,0 +1,13 @@
+{
+  "name": "primo-logs-export",
+  "version": "1.1.1",
+  "private": true,
+  "description": "Chrome extension: export Primo Orchestrator robot operation events to Excel (.xlsx) or CSV",
+  "scripts": {
+    "test": "node --test",
+    "check": "node --check background.js && node --check exporter.js && node --check xlsx-writer.js && node --check csv-writer.js"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

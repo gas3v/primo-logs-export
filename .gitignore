@@ -1,0 +1,5 @@
+dist/
+*.zip
+*.xlsx
+.DS_Store
+Thumbs.db
