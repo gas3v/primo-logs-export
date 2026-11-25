@@ -14,9 +14,9 @@ jobs:
     # pack.ps1 рассчитан на Windows PowerShell 5.1, как у разработчиков
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
 
@@ -37,7 +37,7 @@ jobs:
           $v = (Get-Content manifest.json -Raw | ConvertFrom-Json).version
           if ("v$v" -ne $env:GITHUB_REF_NAME) { throw "Тег $env:GITHUB_REF_NAME не совпадает с версией $v в manifest.json" }
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: primo-logs-export
           path: dist/*.zip
@@ -50,9 +50,9 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           name: primo-logs-export
           path: dist
