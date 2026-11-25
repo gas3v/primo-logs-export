@@ -37,7 +37,7 @@ jobs:
           $v = (Get-Content manifest.json -Raw | ConvertFrom-Json).version
           if ("v$v" -ne $env:GITHUB_REF_NAME) { throw "Тег $env:GITHUB_REF_NAME не совпадает с версией $v в manifest.json" }
 
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v6
         with:
           name: primo-logs-export
           path: dist/*.zip
